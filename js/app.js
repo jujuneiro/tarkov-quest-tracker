@@ -61,7 +61,7 @@
   setInterval(function () {
     var t = S.party.startedAt ? fmt((S.party.finishedAt || Date.now()) - S.party.startedAt) : '';
     if (MODE === 'panel') $('pTimer').textContent = t || '--:--';
-    else $('ovTimer').textContent = t;
+    else $('ovTimer').textContent = t ? '⏱ ' + t : '';
   }, 1000);
 
   /* =====================================================================
@@ -359,6 +359,18 @@
       bannerTimer = setTimeout(function () { b.classList.remove('show'); c.classList.remove('shake'); }, 4200);
     }
 
+    // Если из-за переноса строк текст не помещается в плашку по высоте — уменьшаем шрифт
+    function fit() {
+      if (typeof getComputedStyle !== 'function') return;
+      var c = $('ovCard');
+      c.style.removeProperty('--fs');
+      var fs = parseFloat(getComputedStyle(c).getPropertyValue('--fs')) || 20;
+      while (c.scrollHeight > c.clientHeight + 1 && fs > 9) {
+        fs -= 1;
+        c.style.setProperty('--fs', fs + 'px');
+      }
+    }
+
     function render() {
       var p = S.party, snap = p.snap.slice(0, OMAX);
       var key = snap.map(function (x) { return x.id + ':' + (x.st || 'todo'); }).join(',');
@@ -370,14 +382,16 @@
         $('ovList').innerHTML = snap.length ? snap.map(function (x) {
           var st = x.st || 'todo';
           var cls = 'oq ' + st + (old[x.id] === undefined ? ' in' : (old[x.id] !== st ? ' flip' : ''));
-          return '<div class="' + cls + '"><span class="mk">' + (st === 'done' ? '✓' : '✗') + '</span>' +
+          return '<div class="' + cls + '"><span class="mk">' + (st === 'done' ? '✅' : '❌') + '</span>' +
             '<span class="nm">' + esc(x.name) + '</span></div>';
         }).join('') : '<div class="oq empty"><span class="nm">Нет активных квестов</span></div>';
         prevStates = {};
         snap.forEach(function (x) { prevStates[x.id] = x.st || 'todo'; });
         prevKey = key;
+        fit();
+        if (typeof requestAnimationFrame === 'function') requestAnimationFrame(fit);
       }
-      $('ovDeaths').textContent = p.deaths > 0 ? '☠ ' + p.deaths : '';
+      $('ovDeaths').textContent = snap.length ? '💀 ' + p.deaths : '';
 
       if (prev) { // звуки и пасхалки по изменениям состояния
         if (p.ids.length > prev.n) snd('take');
