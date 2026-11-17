@@ -4,11 +4,12 @@
   --text:#ffffff; --muted:#a0a3cf;
   --violet:#8b5cf6; --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --cyan:#67e8f9;
   --font:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
-  --w:400px; --h:200px; /* размеры оверлея: ?w=&h= */
+  --w:400px; --h:100vh; /* ширина оверлея: ?w=  максимальная высота: ?h= (по умолчанию — вся высота источника) */
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--font);color:var(--text);background:var(--bg);min-height:100vh}
 body.overlay{background:transparent!important;overflow:hidden;min-height:0}
+.ver{font-size:.45em;font-weight:400;color:var(--muted);margin-left:8px}
 body.overlay #panel,body.overlay dialog{display:none}
 body.panel #overlay{display:none}
 button,input,select,textarea{font:inherit;color:var(--text);background:var(--surf2);border:1px solid var(--line);border-radius:10px;padding:9px 14px}
@@ -66,7 +67,8 @@ dialog input,dialog textarea{width:100%;margin-top:4px}
 dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:14px 0 0}
 
 /* ---------- ОВЕРЛЕЙ (OBS): только названия, ✓/✗, смерти и время сбоку ---------- */
-#overlay{position:fixed;left:0;top:0}
+/* Плашка прижата к НИЖНЕМУ краю источника: список растёт вверх */
+#overlay{position:fixed;left:0;bottom:0}
 #ovCard{display:flex;gap:14px;width:var(--w);max-height:var(--h);overflow:hidden;padding:14px 16px;
   background:rgba(10,10,20,.94);border-left:5px solid var(--violet);border-radius:12px;
   box-shadow:0 4px 24px rgba(0,0,0,.55);transition:opacity .4s,transform .4s;--fs:20px}
@@ -90,8 +92,41 @@ body[data-n="3"] #ovCard{--fs:19px} body[data-n="4"] #ovCard{--fs:17px} body[dat
   padding-left:14px;border-left:1px solid var(--line);min-width:78px;font-weight:800;font-variant-numeric:tabular-nums}
 #ovDeaths{color:var(--red);font-size:calc(var(--fs) + 2px)}
 #ovTimer{color:#fff;font-size:calc(var(--fs) + 2px)}
-#ovBanner{position:fixed;left:0;top:calc(var(--h) + 16px);width:var(--w);text-align:center;color:var(--red);font-weight:800;opacity:0}
+#ovBanner{position:absolute;left:0;bottom:100%;margin-bottom:8px;width:var(--w);text-align:center;color:var(--red);font-weight:800;opacity:0}
 #ovBanner.show{animation:banner 4s ease-in-out}
 @keyframes banner{0%{opacity:0;transform:scale(.7)}10%,80%{opacity:1;transform:scale(1)}100%{opacity:0}}
 #ovCard.shake{animation:shake .6s}
 @keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* ---------- УЗКАЯ ВЕРСИЯ (док OBS, телефон): включается при ширине < 520px ---------- */
+@media (max-width:520px){
+  #panel{padding:8px 8px 24px}
+  .bar h1{font-size:1.15em;margin-bottom:8px}
+  .tools{gap:6px}
+  .tools button{flex:1 1 auto;padding:6px 10px;font-size:.82em}
+  button,input,select,textarea{padding:7px 10px;border-radius:9px}
+  .card{padding:10px;margin:10px 0;border-radius:12px}
+  /* Пачка закреплена сверху: «Я умер» всегда под рукой при прокрутке списка */
+  .party{position:sticky;top:0;z-index:5;margin-top:8px;box-shadow:0 10px 22px rgba(0,0,0,.65)}
+  .party-head{gap:8px}
+  .party-head h2{font-size:.95em}
+  .timer{font-size:1.2em}
+  .deaths{font-size:1.1em}
+  #partyList{max-height:34vh;overflow:auto}
+  .pq{flex-wrap:wrap;gap:6px;padding:6px 0}
+  .pq-t{flex:1 1 55%}
+  .pq-t small{display:none}
+  .pq button{padding:5px 9px;font-size:.8em}
+  .party-actions{flex-wrap:wrap;gap:6px;margin-top:8px}
+  .die{flex:1 1 100%;padding:12px;font-size:1em}
+  .party-actions button:not(.die){flex:1 1 40%;padding:7px;font-size:.82em}
+  .filters{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .filters input,#cnt{grid-column:1/-1}
+  .filters select{min-width:0;width:100%}
+  .grid{grid-template-columns:1fr;gap:8px}
+  .q{padding:10px;gap:5px}
+  .q h4{font-size:.95em}
+  .q .obj{font-size:.82em;max-height:4.5em}
+  .q .acts button{padding:6px 10px}
+  dialog{padding:14px}
+}
