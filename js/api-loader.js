@@ -50,15 +50,20 @@
     '} }';
 
   // ---- Сетевой вызов с таймаутом ----
-  function gql(query) {
+  // Сначала пробуем GET: это «простой» запрос без предварительной проверки
+  // (preflight), которая у тебя блокировалась. Если не вышло — обычный POST.
+  function request(query, usePost) {
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS);
-    return fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ query: query }),
-      signal: ctrl.signal
-    }).then(function (r) {
+    var p = usePost
+      ? fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ query: query }),
+          signal: ctrl.signal
+        })
+      : fetch(ENDPOINT + '?query=' + encodeURIComponent(query), { signal: ctrl.signal });
+    return p.then(function (r) {
       clearTimeout(timer);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -72,6 +77,10 @@
       clearTimeout(timer);
       throw e;
     });
+  }
+
+  function gql(query) {
+    return request(query, false).catch(function () { return request(query, true); });
   }
 
   // ---- Приведение к формату трекера ----
