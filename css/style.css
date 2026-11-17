@@ -1,0 +1,80 @@
+/* ===== Tarkov Quest Tracker — стили (панель + оверлей) ===== */
+:root{
+  --bg:#0d0d0d; --panel:#1a1a1a; --line:#2f2f2f; --text:#e5e5e5; --muted:#8a8a8a;
+  --green:#4ade80; --orange:#f97316; --red:#ef4444;
+  --font:'JetBrains Mono','Rajdhani',Consolas,'Courier New',monospace;
+  --w:400px; --h:200px; /* размеры оверлея, меняются через ?w=&h= */
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);color:var(--text);background:var(--bg)}
+body.overlay{background:transparent!important;overflow:hidden}
+body.overlay #panel,body.overlay dialog{display:none}
+body.panel #overlay{display:none}
+button,input,select,textarea{font:inherit;color:var(--text);background:#111;border:1px solid var(--line);border-radius:4px;padding:7px 10px}
+button{cursor:pointer}
+button:hover{border-color:var(--orange);box-shadow:0 0 8px rgba(249,115,22,.35)}
+button:disabled{opacity:.4;cursor:default;box-shadow:none;border-color:var(--line)}
+.muted{color:var(--muted);font-size:.85em}
+.primary{border-color:var(--green);color:var(--green)}
+
+/* ---------- ПАНЕЛЬ ---------- */
+#panel{max-width:1100px;margin:0 auto;padding:14px}
+.bar h1{margin:0 0 8px;font-size:1.3em;color:var(--orange);text-shadow:0 0 10px rgba(249,115,22,.4)}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;margin:12px 0}
+.party{border-color:var(--orange);box-shadow:0 0 14px rgba(249,115,22,.2)}
+.party-head{display:flex;align-items:center;gap:16px}
+.party-head h2{margin:0;font-size:1.05em;flex:1}
+.timer{font-size:1.5em;color:var(--orange)}
+.deaths{font-size:1.3em;color:var(--red)}
+.pq{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.pq .ic{font-size:1.4em}
+.pq-t{flex:1;min-width:0}
+.pq-t b{display:block}
+.pq-t small{color:var(--muted)}
+.party-actions{display:flex;gap:8px;margin-top:10px}
+.die{flex:1;padding:14px;font-size:1.1em;border-color:var(--red);color:var(--red);background:#1a0f0f}
+.die:hover{border-color:var(--red);box-shadow:0 0 14px rgba(239,68,68,.5)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.filters input{flex:1;min-width:180px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.q{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.q.st-active{border-left-color:var(--orange)}
+.q.st-completed{border-left-color:var(--green);opacity:.7}
+.q.st-failed{border-left-color:var(--red)}
+.q h4{margin:0;font-size:1em}
+.q .meta{color:var(--muted);font-size:.8em}
+.q .obj{font-size:.85em;max-height:6.5em;overflow:auto}
+.q .acts{display:flex;gap:6px;margin-top:auto}
+.q .acts button{padding:5px 8px;font-size:.85em}
+.q a{color:var(--muted);font-size:.8em}
+.hist{padding:6px 0;border-top:1px solid var(--line);font-size:.85em}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--orange);border-radius:8px;width:min(480px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+dialog label{display:block;margin:8px 0;font-size:.85em;color:var(--muted)}
+dialog input,dialog textarea{width:100%;margin-top:3px}
+dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:12px 0 0}
+
+/* ---------- ОВЕРЛЕЙ ---------- */
+#overlay{position:fixed;left:0;top:0}
+#ovCard{width:var(--w);max-height:var(--h);overflow:hidden;padding:10px 12px;
+  background:rgba(13,13,13,.8);border:1px solid #3a3a3a;border-left:3px solid var(--orange);
+  border-radius:4px;box-shadow:0 0 16px rgba(249,115,22,.25);
+  transition:opacity .4s,transform .4s;--fs:15px}
+#ovCard.off{opacity:0;transform:translateX(-20px)}
+body[data-n="3"] #ovCard{--fs:13px} body[data-n="4"] #ovCard{--fs:11.5px} body[data-n="5"] #ovCard{--fs:10.5px}
+.oq{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:var(--fs)}
+.oq .ic{font-size:1.3em;line-height:1.1}
+.oq b{display:block;color:var(--orange);text-shadow:0 0 8px rgba(249,115,22,.5)}
+.oq span.o{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text);font-size:.9em}
+.oq.in{animation:slideIn .5s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+#ovFoot{display:flex;justify-content:space-between;margin-top:6px;font-size:calc(var(--fs) + 1px)}
+#ovDeaths{color:var(--red);text-shadow:0 0 8px rgba(239,68,68,.6)}
+#ovTimer{color:var(--green);margin-left:auto}
+#ovBanner{position:fixed;left:0;top:calc(var(--h) + 14px);width:var(--w);text-align:center;color:var(--red);
+  font-weight:bold;opacity:0;text-shadow:0 0 12px var(--red)}
+#ovBanner.show{animation:banner 4s ease-in-out}
+@keyframes banner{0%{opacity:0;transform:scale(.7)}10%,80%{opacity:1;transform:scale(1)}100%{opacity:0}}
+#ovCard.shake{animation:shake .6s}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}

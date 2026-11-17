@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarkov Quest Tracker</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ РЕЖИМ «ПАНЕЛЬ» (?mode=panel) ============ -->
+<main id="panel">
+  <header class="bar">
+    <h1>🎯 Tarkov Quest Tracker</h1>
+    <div class="tools">
+      <button id="btnLoad">⬇ Загрузить все квесты</button>
+      <button id="btnAdd">＋ Свой квест</button>
+      <button id="btnExport">Экспорт</button>
+      <button id="btnImport">Импорт</button>
+      <input type="file" id="fileImport" accept=".json,application/json" hidden>
+      <button id="btnLink">📋 Ссылка оверлея</button>
+      <button id="btnSound">🔊</button>
+    </div>
+    <div id="status" class="muted"></div>
+  </header>
+
+  <section class="card party">
+    <div class="party-head">
+      <h2>Пачка <span id="pCount"></span></h2>
+      <div class="timer" id="pTimer">--:--</div>
+      <div class="deaths">💀 <b id="pDeaths">0</b></div>
+    </div>
+    <div id="partyList"></div>
+    <div class="party-actions">
+      <button id="btnDie" class="die">Я умер (клавиша D)</button>
+      <button id="btnUndo">↩ Отменить смерть</button>
+    </div>
+  </section>
+
+  <section class="filters">
+    <input id="fSearch" placeholder="Поиск по названию…" autocomplete="off">
+    <select id="fTrader"></select>
+    <select id="fMap"></select>
+    <select id="fStatus">
+      <option value="">Любой статус</option>
+      <option value="available">Доступен</option>
+      <option value="active">В работе</option>
+      <option value="completed">Выполнен</option>
+      <option value="failed">Провален</option>
+    </select>
+    <select id="fSort">
+      <option value="level">Сортировка: уровень</option>
+      <option value="trader">Сортировка: трейдер</option>
+      <option value="name">Сортировка: название</option>
+    </select>
+    <span id="cnt" class="muted"></span>
+  </section>
+
+  <div id="list" class="grid"></div>
+
+  <details class="card">
+    <summary>История пачек (<span id="hCount">0</span>)</summary>
+    <div id="history"></div>
+  </details>
+</main>
+
+<!-- Окно добавления / правки квеста -->
+<dialog id="dlg">
+  <h3 id="dTitle">Квест</h3>
+  <input type="hidden" id="dId">
+  <label>Название <input id="dName"></label>
+  <label>Трейдер <input id="dTrader" list="trList"></label>
+  <label>Карта <input id="dMap" list="mapList"></label>
+  <label>Уровень <input id="dLevel" type="number" min="1" max="79"></label>
+  <label>Цель <textarea id="dObj" rows="3"></textarea></label>
+  <label>Награда <input id="dReward"></label>
+  <datalist id="trList"></datalist>
+  <datalist id="mapList"></datalist>
+  <menu>
+    <button type="button" id="dCancel">Отмена</button>
+    <button type="button" id="dSave" class="primary">Сохранить</button>
+  </menu>
+</dialog>
+
+<!-- ============ РЕЖИМ «ОВЕРЛЕЙ» (?mode=overlay) ============ -->
+<div id="overlay">
+  <div id="ovCard">
+    <div id="ovList"></div>
+    <div id="ovFoot"><span id="ovDeaths"></span><span id="ovTimer"></span></div>
+  </div>
+  <div id="ovBanner"></div>
+</div>
+
+<script src="js/quests.js"></script>
+<script src="js/api-loader.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
