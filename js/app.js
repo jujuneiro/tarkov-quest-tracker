@@ -7,6 +7,7 @@
   'use strict';
 
   // ---------- Настройки (можно менять) ----------
+  var VERSION = '6';       // номер версии (виден в панели рядом с заголовком)
   var KEY = 'tqt_state_v1';   // ключ в localStorage
   var MAX = 5;                // максимум квестов в пачке
   var EASTER_EVERY = 10;      // пасхалка на каждой N-й смерти пачки
@@ -68,6 +69,7 @@
      ПАНЕЛЬ
      ===================================================================== */
   function initPanel() {
+    if ($('ver')) $('ver').textContent = 'v' + VERSION;
     var Q = window.TQT_BUILTIN_QUESTS.slice(); // базовый список; заменится данными API
 
     function all() {
@@ -85,7 +87,12 @@
       return p.snap.length > 0 && p.snap.every(function (s) { return (s.st || 'todo') !== 'todo'; });
     }
     function find(id) { return all().filter(function (x) { return x.id === id; })[0]; }
-    function say(t) { $('status').textContent = t || ''; }
+    var sayTimer = null;
+    function say(t) { // сообщение в строке статуса исчезает само через 8 секунд
+      $('status').textContent = t || '';
+      clearTimeout(sayTimer);
+      if (t) sayTimer = setTimeout(function () { $('status').textContent = ''; }, 8000);
+    }
 
     // ----- действия с пачкой -----
     function take(id) {
@@ -327,7 +334,8 @@
   function initOverlay() {
     var root = document.documentElement.style;
     root.setProperty('--w', (parseInt(P.get('w'), 10) || 400) + 'px');
-    root.setProperty('--h', (parseInt(P.get('h'), 10) || 200) + 'px');
+    var hp = parseInt(P.get('h'), 10);
+    root.setProperty('--h', hp ? hp + 'px' : '100vh'); // без ?h= плашка может занять всю высоту источника
     var OMAX = Math.min(MAX, parseInt(P.get('max'), 10) || MAX);
 
     // ----- звуки (генерируются в браузере, файлы не нужны) -----
