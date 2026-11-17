@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tarkov Quest Tracker</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
 <!-- ============ РЕЖИМ «ПАНЕЛЬ» (?mode=panel) ============ -->
 <main id="panel">
   <header class="bar">
-    <h1>🎯 Tarkov Quest Tracker</h1>
+    <h1>🎯 Tarkov Quest Tracker <span class="ver" id="ver"></span></h1>
     <div class="tools">
-      <button id="btnLoad">⬇ Загрузить все квесты</button>
-      <button id="btnAdd">＋ Свой квест</button>
+      <button id="btnLoad" title="Загрузить все квесты с tarkov.dev">⬇ Квесты</button>
+      <button id="btnAdd" title="Добавить свой квест">＋ Квест</button>
       <button id="btnExport">Экспорт</button>
       <button id="btnImport">Импорт</button>
       <input type="file" id="fileImport" accept=".json,application/json" hidden>
-      <button id="btnLink">📋 Ссылка оверлея</button>
+      <button id="btnLink" title="Скопировать ссылку оверлея для OBS">📋 Оверлей</button>
       <button id="btnSound">🔊</button>
     </div>
     <div id="status" class="muted"></div>
@@ -32,9 +32,9 @@
     </div>
     <div id="partyList"></div>
     <div class="party-actions">
-      <button id="btnDie" class="die">Я умер (клавиша D)</button>
-      <button id="btnUndo">↩ Отменить смерть</button>
-      <button id="btnClose">Завершить пачку</button>
+      <button id="btnDie" class="die" title="Горячая клавиша D">💀 Я умер (D)</button>
+      <button id="btnUndo">↩ Отмена</button>
+      <button id="btnClose">🏁 Завершить</button>
     </div>
   </section>
 
@@ -92,8 +92,8 @@
   <div id="ovBanner"></div>
 </div>
 
-<script src="js/quests.js"></script>
-<script src="js/api-loader.js"></script>
-<script src="js/app.js"></script>
+<script src="js/quests.js?v=6"></script>
+<script src="js/api-loader.js?v=6"></script>
+<script src="js/app.js?v=6"></script>
 </body>
 </html>
