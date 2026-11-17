@@ -35,7 +35,7 @@
   // names — названия сданных в этой пачке квестов.
   var DEF = {
     progress: {}, custom: [], edits: {},
-    party: { ids: [], snap: [], names: [], deaths: 0, startedAt: null },
+    party: { ids: [], snap: [], names: [], deaths: 0, startedAt: null, finishedAt: null },
     history: [],
     settings: { sound: true, easter: true, volume: 0.6 }
   };
@@ -59,7 +59,7 @@
 
   // ---------- Таймер (оба режима) ----------
   setInterval(function () {
-    var t = S.party.startedAt ? fmt(Date.now() - S.party.startedAt) : '';
+    var t = S.party.startedAt ? fmt((S.party.finishedAt || Date.now()) - S.party.startedAt) : '';
     if (MODE === 'panel') $('pTimer').textContent = t || '--:--';
     else $('ovTimer').textContent = t;
   }, 1000);
@@ -77,7 +77,12 @@
       });
     }
     function stat(x) {
-      return S.party.ids.indexOf(x.id) > -1 ? 'active' : (S.progress[x.id] || 'available');
+      var i = S.party.ids.indexOf(x.id);
+      if (i > -1 && (S.party.snap[i].st || 'todo') === 'todo') return 'active';
+      return S.progress[x.id] || 'available';
+    }
+    function allResolved(p) {
+      return p.snap.length > 0 && p.snap.every(function (s) { return (s.st || 'todo') !== 'todo'; });
     }
     function find(id) { return all().filter(function (x) { return x.id === id; })[0]; }
     function say(t) { $('status').textContent = t || ''; }
@@ -85,32 +90,42 @@
     // ----- действия с пачкой -----
     function take(id) {
       var x = find(id), p = S.party;
-      if (!x || p.ids.indexOf(id) > -1) return;
-      if (p.ids.length >= MAX) { say('В пачке уже ' + MAX + ' квестов — сдай или убери один.'); return; }
+      if (!x) return;
+      if (p.finishedAt) { closeParty(); p = S.party; } // прошлая пачка завершена — начинаем новую
+      if (p.ids.indexOf(id) > -1) return;
+      if (p.snap.length >= MAX) { say('В пачке уже ' + MAX + ' квестов — заверши пачку или убери один.'); return; }
       p.ids.push(id);
-      p.snap.push({ id: x.id, name: x.name, trader: x.trader, map: x.map, objective: x.objective });
-      if (p.ids.length === 1) p.startedAt = Date.now();
+      p.snap.push({ id: x.id, name: x.name, trader: x.trader, map: x.map, objective: x.objective, st: 'todo' });
+      if (p.snap.length === 1) p.startedAt = Date.now();
       save(); render();
     }
-    function leave(id, status) { // status: 'completed' | 'failed' | null (просто убрать)
+    // status: 'completed' | 'failed' — квест остаётся в пачке с отметкой ✓ / ✗;
+    //         null — просто убрать квест из пачки.
+    function leave(id, status) {
       var p = S.party, i = p.ids.indexOf(id);
       if (i < 0) return;
-      if (status === 'completed') p.names.push(p.snap[i].name);
-      if (status) S.progress[id] = status;
-      p.ids.splice(i, 1); p.snap.splice(i, 1);
-      if (!p.ids.length) closeParty();
+      if (status) {
+        p.snap[i].st = status === 'completed' ? 'done' : 'failed';
+        S.progress[id] = status;
+        if (status === 'completed') p.names.push(p.snap[i].name);
+      } else {
+        p.ids.splice(i, 1); p.snap.splice(i, 1);
+        if (!p.snap.length) { closeParty(); save(); render(); return; }
+      }
+      if (allResolved(p)) p.finishedAt = Date.now(); // все решены: таймер останавливается
       save(); render();
     }
-    function closeParty() {
+    function closeParty() { // перенос пачки в историю и сброс
       var p = S.party;
       if (p.names.length) {
-        S.history.unshift({ names: p.names, deaths: p.deaths, startedAt: p.startedAt, finishedAt: Date.now() });
+        S.history.unshift({ names: p.names, deaths: p.deaths, startedAt: p.startedAt, finishedAt: p.finishedAt || Date.now() });
       }
       S.party = clone(DEF.party);
     }
     function die(delta) {
       var p = S.party;
-      if (!p.ids.length) { say('Сначала возьми квест в работу.'); return; }
+      if (!p.snap.length) { say('Сначала возьми квест в работу.'); return; }
+      if (p.finishedAt) { say('Пачка уже завершена. Возьми новый квест или нажми «Завершить пачку».'); return; }
       p.deaths = Math.max(0, p.deaths + delta);
       save(); render();
     }
@@ -118,14 +133,19 @@
     // ----- отрисовка -----
     function renderParty() {
       var p = S.party;
-      $('pCount').textContent = '(' + p.ids.length + '/' + MAX + ')';
+      $('pCount').textContent = '(' + p.snap.length + '/' + MAX + ')';
       $('pDeaths').textContent = p.deaths;
+      $('btnClose').disabled = !p.snap.length;
       $('partyList').innerHTML = p.snap.length ? p.snap.map(function (x) {
-        return '<div class="pq"><span class="ic">' + icon(x.trader) + '</span>' +
-          '<div class="pq-t"><b>' + esc(x.name) + '</b><small>' + esc(x.objective) + '</small></div>' +
-          '<button data-a="done" data-id="' + esc(x.id) + '">Сдать</button>' +
-          '<button data-a="fail" data-id="' + esc(x.id) + '" title="Провален">✗</button>' +
-          '<button data-a="drop" data-id="' + esc(x.id) + '">Убрать</button></div>';
+        var st = x.st || 'todo', id = esc(x.id);
+        var mark = '<span class="mk ' + (st === 'done' ? 'ok' : 'no') + '">' + (st === 'done' ? '✓' : '✗') + '</span>';
+        var btns = st === 'todo'
+          ? '<button class="primary" data-a="done" data-id="' + id + '">Сдать</button>' +
+            '<button data-a="fail" data-id="' + id + '" title="Провален">✗ Провален</button>' +
+            '<button data-a="drop" data-id="' + id + '">Убрать</button>'
+          : '<span class="muted">' + (st === 'done' ? 'выполнено' : 'провалено') + '</span>';
+        return '<div class="pq ' + st + '">' + mark + '<div class="pq-t"><b>' + esc(x.name) + '</b><small>' +
+          esc(x.objective) + '</small></div>' + btns + '</div>';
       }).join('') : '<p class="muted">Пачка пуста. Выбери квест ниже и нажми «Взять в работу».</p>';
     }
 
@@ -254,6 +274,7 @@
     });
     $('btnDie').onclick = function () { die(1); };
     $('btnUndo').onclick = function () { die(-1); };
+    $('btnClose').onclick = function () { if (S.party.snap.length) { closeParty(); save(); render(); } };
     $('btnLoad').onclick = function () { loadApi(true); };
     $('btnAdd').onclick = function () { openEdit(null); };
     $('btnSound').onclick = function () { S.settings.sound = !S.settings.sound; save(); render(); };
@@ -327,7 +348,7 @@
       } catch (e) {}
     }
 
-    var prevKey = null, prev = null, bannerTimer = null;
+    var prevKey = null, prevStates = null, prev = null, bannerTimer = null;
 
     function easter(n) { // пасхалка на каждой 10-й смерти
       var b = $('ovBanner'), c = $('ovCard');
@@ -339,24 +360,28 @@
     }
 
     function render() {
-      var p = S.party, snap = p.snap.slice(0, OMAX), key = snap.map(function (x) { return x.id; }).join(',');
+      var p = S.party, snap = p.snap.slice(0, OMAX);
+      var key = snap.map(function (x) { return x.id + ':' + (x.st || 'todo'); }).join(',');
       document.body.setAttribute('data-n', snap.length);
-      var showEmpty = P.get('empty') === 'show';
-      $('ovCard').classList.toggle('off', !snap.length && !showEmpty);
+      $('ovCard').classList.toggle('off', !snap.length && P.get('empty') !== 'show');
 
-      if (key !== prevKey) { // перерисовываем список только при смене состава пачки
-        var old = prevKey ? prevKey.split(',') : [];
+      if (key !== prevKey) { // перерисовываем список только при изменении квестов или их отметок
+        var old = prevStates || {};
         $('ovList').innerHTML = snap.length ? snap.map(function (x) {
-          return '<div class="oq' + (old.indexOf(x.id) < 0 ? ' in' : '') + '"><span class="ic">' + icon(x.trader) +
-            '</span><div><b>' + esc(x.name) + '</b><span class="o">' + esc(x.objective) + '</span></div></div>';
-        }).join('') : '<div class="oq"><div><span class="o">Нет активных квестов</span></div></div>';
+          var st = x.st || 'todo';
+          var cls = 'oq ' + st + (old[x.id] === undefined ? ' in' : (old[x.id] !== st ? ' flip' : ''));
+          return '<div class="' + cls + '"><span class="mk">' + (st === 'done' ? '✓' : '✗') + '</span>' +
+            '<span class="nm">' + esc(x.name) + '</span></div>';
+        }).join('') : '<div class="oq empty"><span class="nm">Нет активных квестов</span></div>';
+        prevStates = {};
+        snap.forEach(function (x) { prevStates[x.id] = x.st || 'todo'; });
         prevKey = key;
       }
-      $('ovDeaths').textContent = p.deaths > 0 ? '💀 ' + p.deaths : '';
+      $('ovDeaths').textContent = p.deaths > 0 ? '☠ ' + p.deaths : '';
 
       if (prev) { // звуки и пасхалки по изменениям состояния
         if (p.ids.length > prev.n) snd('take');
-        if (p.names.length > prev.c || S.history.length > prev.h) snd('done');
+        if (p.names.length > prev.c) snd('done');
         if (p.deaths > prev.d) {
           snd('die');
           if (S.settings.easter && p.deaths % EASTER_EVERY === 0) easter(p.deaths);
