@@ -74,14 +74,14 @@ dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:14px 
 body[data-n="1"] #ovCard,body[data-n="2"] #ovCard{--fs:22px}
 body[data-n="3"] #ovCard{--fs:19px} body[data-n="4"] #ovCard{--fs:17px} body[data-n="5"] #ovCard{--fs:15px}
 #ovList{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:7px}
-.oq{display:flex;align-items:center;gap:10px;font-size:var(--fs);font-weight:700;line-height:1.2}
-.oq .mk{font-size:1.2em;width:1.1em;flex:none}
+.oq{display:flex;align-items:flex-start;gap:10px;font-size:var(--fs);font-weight:700;line-height:1.2}
+.oq .mk{font-size:1em;width:1.3em;flex:none;text-align:center}
 .oq.todo .mk{color:var(--red)}
 .oq.done .mk{color:var(--green)}
 .oq.failed .mk{color:var(--red);opacity:.6}
 .oq.failed .nm{text-decoration:line-through;opacity:.55}
 .oq.empty .nm{color:var(--muted);font-weight:600}
-.nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm{white-space:normal;overflow-wrap:anywhere}
 .oq.in{animation:slideIn .45s ease-out}
 .oq.flip .mk{animation:pop .5s ease-out}
 @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
